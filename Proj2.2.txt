@@ -1,0 +1,70 @@
+The life of getpid():
+First, getpid() is called in the user space. The declaration for getpid() is in
+user.h:
+22	int getpid(void);
+
+getpid()'s functionality is defined in usys.S, in assembly:
+28	SYSCALL(getpid)
+Note that this code will be expanded into the following assembly instructions 
+due to the #define at the beginning of the file:
+.globl getpid
+getpid:
+	movl $SYS_getpid, %eax
+	int $T_SYSCALL
+	ret
+This code will define getpid as a global symbol and create a point to jump to.  
+$SYS_getpid is a constant, which is defined in syscall.h:
+12	#define SYS_getpid 11
+Therefore, the value 11 will be passed into the eax register. Then, an interrupt
+is triggered via the int command; the specific interrupt handler is $T_SYSCALL,
+which is defined in traps.h:
+27	#define T_SYSCALL	64
+Note: ret will return to the caller of the getpid() function.
+
+The exact location that the interrupt will jump to is defined in the vectors.S
+file (which is dynamically created when the kernel is compiled). Note that the
+line numbers here are assuming that no additional vectors are being generated
+aside from those that are made from the original xv6 source:
+317	.globl vector64
+218	vector64:
+219	  pushl $0
+220	  pushl $64
+221	  jmp alltraps
+
+The alltraps tag is located inside of trapasm.S. This pushes all the data that
+the userspace is currently using into a trap, allowing the system to transfer
+into kernel mode. While the structure of the trapframe is defined in x86.h, the
+instance created by alltraps is done so with assembly. Note that:
+159	uint eax;
+contains the system call number SYS_getpid, which in this case is 11. 
+
+alltraps calls trap(struct trapframe* tf), which is located in trap.c. Because 
+tf->trapno == 0, syscall() will be called, which is located in syscall.c:
+126	void
+127	syscall(void)
+128	{
+129	 int num;
+
+This will pull the value in eax into num, which should be 11 (for getpid):
+131	num = proc->tf->eax;
+
+This will call syscalls[11](); note that setting eax to the syscall means that
+we will NOT return to syscall upon exit
+133	if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+134		proc->tf->eax = syscalls[num]();
+
+And in syscalls[]() (also located in syscall.c):
+113	[SYS_getpid]  sys_getpid,
+
+This references a declaration further up in syscall.c:
+87	extern int sys_getpid(void);
+
+sys_getpid() is defined in sysproc.c:
+39	int
+40	sys_getpid(void)
+41	{
+42		return proc->pid;
+43	}
+
+Now the value of the current process is being returned. sys_getpid() will
+return the PID to 
