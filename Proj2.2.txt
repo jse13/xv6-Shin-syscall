@@ -21,8 +21,11 @@ which is defined in traps.h:
 27	#define T_SYSCALL	64
 Note: ret will return to the caller of the getpid() function.
 
+Once int is triggered, the execution of the call shifts into Kernel Mode.
+
 The exact location that the interrupt will jump to is defined in the vectors.S
-file (which is dynamically created when the kernel is compiled). Note that the
+file (which is dynamically created when the kernel is compiled). This is a
+vector of all system calls, indexed into via T_SYSCALL in this case. Note that the
 line numbers here are assuming that no additional vectors are being generated
 aside from those that are made from the original xv6 source:
 317	.globl vector64
@@ -32,8 +35,8 @@ aside from those that are made from the original xv6 source:
 221	  jmp alltraps
 
 The alltraps tag is located inside of trapasm.S. This pushes all the data that
-the userspace is currently using into a trap, allowing the system to transfer
-into kernel mode. While the structure of the trapframe is defined in x86.h, the
+the userspace is currently using into a trap, which is then pushed into the
+Process Control Block. While the structure of the trapframe is defined in x86.h, the
 instance created by alltraps is done so with assembly. Note that:
 159	uint eax;
 contains the system call number SYS_getpid, which in this case is 11. 
@@ -48,8 +51,10 @@ tf->trapno == 0, syscall() will be called, which is located in syscall.c:
 This will pull the value in eax into num, which should be 11 (for getpid):
 131	num = proc->tf->eax;
 
-This will call syscalls[11](); note that setting eax to the syscall means that
-we will NOT return to syscall upon exit
+This will call syscalls[11](), which is an array of function names (the Sycall
+Dispatch Table). First, the code ensures that the specified syscall number
+actually exists; it must be greater than 0, and it must be less than the total
+number of elements inside they syscalls table (provided by NELEM):
 133	if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
 134		proc->tf->eax = syscalls[num]();
 
@@ -66,5 +71,5 @@ sys_getpid() is defined in sysproc.c:
 42		return proc->pid;
 43	}
 
-Now the value of the current process is being returned. sys_getpid() will
-return the PID to 
+The return value of sys_getpid() is returned via the eax register, which is
+stored on the stack and will be pushed out upon returning to alltraps.S. 
