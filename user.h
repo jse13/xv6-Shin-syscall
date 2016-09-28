@@ -23,7 +23,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-void pstree(void);
+int getprocs(int max, struct uproc table[]);
 
 // ulib.c
 int stat(char*, struct stat*);

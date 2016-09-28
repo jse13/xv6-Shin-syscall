@@ -77,7 +77,7 @@ argstr(int n, char **pp)
   return fetchstr(addr, pp);
 }
 
-extern int sys_pstree(void);
+extern int sys_getprocs(void);
 extern int sys_chdir(void);
 extern int sys_close(void);
 extern int sys_dup(void);
