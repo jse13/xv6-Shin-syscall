@@ -20,8 +20,12 @@
 int
 sys_getprocs(void) {
 
-  
+  //Get arguments from stack
+  int maxprocs = 0;
+  argint(0, &maxprocs);
+  //TODO: populate given array
 
+  //TODO: return error state
   return 0;
 }
 
