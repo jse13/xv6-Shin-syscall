@@ -14,6 +14,13 @@
 #include "file.h"
 #include "fcntl.h"
 
+// Get a piece of memory from user space, fill it with process information,
+// then send it back.
+int
+sys_getprocs(int max, struct uproc table[]) {
+
+}
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
