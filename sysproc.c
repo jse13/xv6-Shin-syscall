@@ -6,6 +6,31 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "uproc.h"
+
+int
+sys_getprocs(void) {
+  
+  //Get args from stack
+  int maxprocs = 0;
+  struct uproc* kprocs = 0;
+  extern struct ptable;
+
+  argint(1, &maxprocs);
+
+  if(argptr(0, (char**)kprocs, (sizeof(struct uproc) * maxprocs)) == -1)
+    return -1;
+
+  int i = 0;
+
+  for(i; i < maxprocs && i < NPROC; i++) {
+    kprocs[i].pid = ptable.proc[i].pid;
+  }
+
+  return 0;
+
+}
+
 
 int
 sys_fork(void)
