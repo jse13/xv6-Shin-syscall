@@ -6,8 +6,9 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "uproc.h"
 
-struct {
+struct ptable{
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
@@ -19,6 +20,17 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+//Function that essentially does getprocs' job.
+//Since ptable is located in this file, it's
+//far easier to access.
+int
+popuproc(int max, struct uproc kprocs[]) {
+
+
+  return 0;
+
+}
 
 void
 pinit(void)
