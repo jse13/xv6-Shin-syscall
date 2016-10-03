@@ -8,6 +8,8 @@
 #include "spinlock.h"
 #include "uproc.h"
 
+extern void printf(int, char*, ...);
+
 struct ptable{
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -21,14 +23,52 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
-//Function that essentially does getprocs' job.
-//Since ptable is located in this file, it's
-//far easier to access.
+//Fetch PID of specified process
 int
-popuproc(int max, struct uproc kprocs[]) {
+getpid(int procnum) {
+
+  //If process is valid, return pid
+  if(ptable.proc[procnum].state != UNUSED)
+    return (ptable.proc[procnum].pid);
+  else
+    return -2;
+
+}
+
+//Fetch PPID of specified process
+int
+getppid(int procnum) {
 
 
-  return 0;
+  if(ptable.proc[procnum].state != UNUSED) {
+    //If the parent PID is less than 0, there's no parent
+    if(ptable.proc[procnum].parent->pid < 0)
+      return 0;
+    else
+      return (ptable.proc[procnum].parent->pid);
+  }
+  else
+    return -2;
+
+}
+
+//Get name of specified process
+int getprocname(int procnum, char* dest) {
+
+  int i = 0;
+
+  if(ptable.proc[procnum].state != UNUSED) {
+
+    for(i = 0; ptable.proc[procnum].name[i] != '\0'; i++) {
+
+      dest[i] = ptable.proc[procnum].name[i]; 
+
+    }
+
+    return 0;
+  }
+  else 
+    return -2;
 
 }
 

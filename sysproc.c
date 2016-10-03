@@ -8,22 +8,43 @@
 #include "proc.h"
 #include "uproc.h"
 
-extern int popuproc(int, struct uproc*);
+//extern void  popuproc(int, struct uproc[]);
+//extern int getpid(int);
+//extern int getppid(int);
+
 int
 sys_getprocs(void) {
   
   //Get args from stack
   int maxprocs = 0;
   struct uproc* kprocs = 0;
-  argint(1, &maxprocs);
+  argint(0, &maxprocs);
 
-  if(argptr(0, (char**)kprocs, (sizeof(struct uproc) * maxprocs)) == -1)
+
+  //If maxprocs exceeds max number of procs, bump it down
+  if(maxprocs > NPROC)
+    maxprocs = 64;
+
+  if(argptr(1, (void*)&kprocs, (sizeof(struct uproc) * maxprocs)) == -1)
     return -1;
 
-  //Run another function, popuproc, to populate the array with proc
-  //information.
-  
-  return popuproc(maxprocs, kprocs);
+  int i = 0;
+  for(i = 0; i < maxprocs; i++) {
+    kprocs[i].pid = getpid(i);
+    kprocs[i].ppid = getppid(i);
+    //getprocname(i, kprocs[i].name);
+    if(kprocs[i].pid == -2 || kprocs[i].ppid == -2 || (getprocname(i, kprocs[i].name)) == -2) {
+
+      //Add an indicator to the end so that pstree knows its the end of the list
+      kprocs[i + 1].pid  = -2;
+
+      //break loop
+      return 0; 
+    }
+  }
+
+  kprocs[i].pid  = -2;
+  return 0;
 
 }
 

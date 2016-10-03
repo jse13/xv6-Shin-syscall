@@ -70,3 +70,7 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+int getpid(int);
+int getppid(int);
+int getprocname(int, char*);
