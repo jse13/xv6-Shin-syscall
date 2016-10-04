@@ -8,7 +8,7 @@
 int
 main(int argc, char *argv[])
 {
-  
+
   //Make array of uproc structs dynamically
   struct uproc* uprocs = malloc((sizeof(struct uproc) * MAX_PROCS));
 
@@ -18,16 +18,25 @@ main(int argc, char *argv[])
   }
 
   //Print out proc info
-  int i = 0;
-  for(i = 0; i < MAX_PROCS; i++) {
-    //If the current process has a PID of -2, that means the end of the valid
-    //processes
-    if(uprocs[i].pid == -2) {
-      printf(1, "Found -2, exiting after %d loops\n", i); //@@
-      break;
-    }
-    printf(1, "Name: %s     PID: %d     PPID: %d     \n", 
-                    uprocs[i].name, uprocs[i].pid, uprocs[i].ppid);
+  int i, k = 0;
+  int whitespaces = 0;
+
+  //sort based on PID
+  for(i = 0; i < MAX_PROCS && uprocs[i].pid != -2; i++) {
+
+    //If child of a parent, print whitespaces
+    if(i != 0 && (uprocs[i].ppid == uprocs[i - 1].pid))
+      whitespaces += 3;
+    else if(whitespaces >= 3)
+      whitespaces -= 3;
+    else
+      whitespaces = 0;
+
+    for(k = 0; k < whitespaces; k++)
+      printf(1, " ");
+
+    //Print out the name and PID of process
+    printf(1, "%s [%d]\n", uprocs[i].name, uprocs[i].pid);
 
   }
 
